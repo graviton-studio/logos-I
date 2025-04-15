@@ -1,16 +1,21 @@
-import json
 from langchain_core.messages import SystemMessage
 from langchain_core.runnables import RunnableConfig
 from load_model import AgentState, model
 from parse_query import extract_intent_and_constraints
+from langchain.schema import HumanMessage
+
 
 def call_model(
     state: AgentState,
     config: RunnableConfig,
 ):
-    system_prompt_value = extract_intent_and_constraints(state["messages"])
-
+    system_prompt_value = ''
+    for message in state["messages"]:
+        if isinstance(message, HumanMessage):
+            print("User said:", message.content)
+            system_prompt_value = extract_intent_and_constraints(message.content)
     system_prompt = SystemMessage(system_prompt_value)
+    print("thsi is the current system prompt", system_prompt)
     response = model.invoke([system_prompt] + state["messages"], config)
     return {"messages": [response]}
 
@@ -22,4 +27,3 @@ def should_continue(state: AgentState):
         return "end"
     else:
         return "continue"
-    
