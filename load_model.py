@@ -9,6 +9,8 @@ from typing import (
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+load_dotenv()
 
 
 

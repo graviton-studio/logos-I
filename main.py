@@ -1,20 +1,7 @@
-import os
-
-from typing import (
-    Annotated,
-    Sequence,
-    TypedDict,
-)
-
-from dotenv import load_dotenv
 from agent import call_model, should_continue
 from tools import tool_node
-from load_model import AgentState, model
+from load_model import AgentState
 
-
-from langchain_core.messages import BaseMessage
-from langgraph.graph.message import add_messages
-from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 
 
@@ -52,6 +39,28 @@ def print_stream(stream):
 
 def main():
     graph = start_workflow()
-    inputs = {"messages": [("user", "what is the weather in sf")]} #change this so that the user can input the value
-    print_stream(graph.stream(inputs, stream_mode="values"))
+    history = []
 
+    while True:
+        user_input = input("Enter your prompt (or type 'exit' to quit): ").strip()
+        if user_input.lower() == "exit":
+            break
+
+        history.append(("user", user_input))
+        inputs = {"messages": history}
+
+        print("================================ Response ================================")
+        for s in graph.stream(inputs, stream_mode="values"):
+            message = s["messages"][-1]
+
+            if isinstance(message, tuple):
+                print(message[1])
+                history.append(message)
+            else:
+                message.pretty_print()
+                history.append(("agent", message.content))
+
+        print("\n")
+
+
+main()

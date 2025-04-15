@@ -26,14 +26,4 @@ Respond in this JSON format:
     )
 
     content = response.choices[0].message.content.strip()
-    try:
-        return eval(content)
-    except Exception as e:
-        raise ValueError(f"Could not parse LLM response:\n{content}") from e
-
-
-
-if __name__ == "__main__":
-    prompt = "I'm having a bad day and dont want to respond to my emails, can you go through and respond to all the emails I missed only from last week though?"
-    parsed = extract_intent_and_constraints(prompt)
-    print(parsed)
+    return content 
