@@ -75,7 +75,7 @@ class BaseOAuthProvider(ABC):
         pass
 
 
-class GoogleCalendarOAuthProvider(BaseOAuthProvider):
+class GoogleOAuthProvider(BaseOAuthProvider):
     def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
         credentials = google.oauth2.credentials.Credentials(
             token=credential.access_token,
@@ -87,11 +87,18 @@ class GoogleCalendarOAuthProvider(BaseOAuthProvider):
         return credentials
 
 
+PROVIDERS = {
+    "gcal": GoogleOAuthProvider(),
+    "gmail": GoogleOAuthProvider(),
+}
+
+
 class TokenService:
     @staticmethod
     def get_provider(provider: str) -> BaseOAuthProvider:
-        if provider == "gcal":
-            return GoogleCalendarOAuthProvider()
+        if provider in PROVIDERS:
+            return PROVIDERS[provider]
+
         raise Exception(f"Unsupported provider: {provider}")
 
     @staticmethod

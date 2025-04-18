@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 import httpx
 from utils.auth import TokenService
+from fastapi.concurrency import run_in_threadpool
 
 
 async def get_events(
