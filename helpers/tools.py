@@ -3,7 +3,7 @@ import json
 from langchain_core.messages import ToolMessage
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
-from content.helpers.load_model import AgentState, model
+from helpers.load_model import AgentState, model
 
 
 # example
