@@ -1,5 +1,6 @@
 from intergrations import INTEGRATION_REGISTRY
 
+
 class MCPGatewayServer:
     def __init__(self, db_client):
         self.db = db_client

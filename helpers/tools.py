@@ -1,11 +1,12 @@
-#this file should be populated with intergrations and speific ways we want the prompt handled
+# this file should be populated with intergrations and speific ways we want the prompt handled
 import json
 from langchain_core.messages import ToolMessage
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from content.helpers.load_model import AgentState, model
 
-#example 
+
+# example
 @tool
 def get_weather(location: str):
     """Call to get the weather from a specific location."""
@@ -38,4 +39,4 @@ def tool_node(state: AgentState):
     return {"messages": outputs}
 
 
-#goal should be to call the tool_node in the main.py file 
+# goal should be to call the tool_node in the main.py file

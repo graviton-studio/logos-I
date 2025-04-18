@@ -5,6 +5,7 @@ from openai import OpenAI
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+
 def extract_intent_and_constraints(user_prompt):
     allowed_integrations = {
         "google_calendar_list": {
@@ -12,8 +13,8 @@ def extract_intent_and_constraints(user_prompt):
             "tools": {
                 "get_events": "Fetches all events for a given date range.",
                 "create_event": "Creates a new event with title, time, and participants.",
-                "delete_event": "Deletes a specified calendar event."
-            }
+                "delete_event": "Deletes a specified calendar event.",
+            },
         }
     }
 
@@ -49,13 +50,16 @@ Respond in this JSON format:
         model="gpt-4",
         messages=[
             {"role": "system", "content": system_prompt.strip()},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ],
-        temperature=0.2
+        temperature=0.2,
     )
 
     content = response.choices[0].message.content.strip()
     return content
 
-content = extract_intent_and_constraints("can you grab all the events from the week of dec 17th 2024")
+
+content = extract_intent_and_constraints(
+    "can you grab all the events from the week of dec 17th 2024"
+)
 print(content)

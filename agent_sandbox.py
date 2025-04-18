@@ -13,9 +13,8 @@ class RunAgent:
         self.agent_state = StateGraph(AgentState)
         self.workflow = self.agent_state
 
-
     def call_model(self):
-        system_prompt_value = ''
+        system_prompt_value = ""
         for message in self.state["messages"]:
             if isinstance(message, HumanMessage):
                 print("User said:", message.content)
@@ -31,7 +30,7 @@ class RunAgent:
             return "end"
         else:
             return "continue"
-        
+
     def start_workflow(self):
         self.workflow.add_node("agent", self.call_model)
         self.workflow.add_node("tools", tool_node)
@@ -52,7 +51,7 @@ class RunAgent:
         graph = self.workflow.compile()
 
         return graph
-    
+
     def print_stream(stream):
         for s in stream:
             message = s["messages"][-1]
@@ -73,7 +72,9 @@ class RunAgent:
             history.append(("user", user_input))
             inputs = {"messages": history}
 
-            print("================================ Response ================================")
+            print(
+                "================================ Response ================================"
+            )
             for s in graph.stream(inputs, stream_mode="values"):
                 message = s["messages"][-1]
 
@@ -85,7 +86,3 @@ class RunAgent:
                     history.append(("agent", message.content))
 
             print("\n")
-
-
-
-
