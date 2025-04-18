@@ -110,7 +110,7 @@ class TokenService:
         return decrypt(token)
 
     @staticmethod
-    def save_credential(
+    def save_credentials(
         user_id: str, provider: str, token_data: OAuthTokenData
     ) -> None:
         # Encrypt sensitive data
@@ -139,7 +139,7 @@ class TokenService:
         ).execute()
 
     @staticmethod
-    def get_credential(user_id: str, provider: str) -> Optional[OAuthTokenData]:
+    def get_credentials(user_id: str, provider: str) -> Optional[OAuthTokenData]:
         result = (
             supabase.table("oauth_credentials")
             .select("*")
@@ -172,7 +172,7 @@ class TokenService:
 
     @staticmethod
     def refresh_token_if_needed(user_id: str, provider: str) -> OAuthTokenData:
-        credential = TokenService.get_credential(user_id, provider)
+        credential = TokenService.get_credentials(user_id, provider)
         if credential is None:
             raise Exception(
                 f"No credential found for user {user_id} and provider {provider}"
@@ -186,6 +186,6 @@ class TokenService:
         provider_client = TokenService.get_provider(provider)
         new_token_data = provider_client.refresh_access_token(credential)
 
-        TokenService.save_credential(user_id, provider, new_token_data)
+        TokenService.save_credentials(user_id, provider, new_token_data)
 
         return new_token_data

@@ -1,10 +1,9 @@
 from typing import Union
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
 from integrations.gcal import get_calendars, get_events
-from integrations.gmail import list_messages
-from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 from utils.auth import TokenService
 from integrations.gmail import (
     GmailClient,
@@ -12,7 +11,6 @@ from integrations.gmail import (
     CreateDraftRequest,
     ReplyMessageRequest,
 )
-from fastapi import Depends
 
 
 app = FastAPI()
@@ -45,7 +43,11 @@ async def get_events_endpoint(user_id: str):
 async def send_message(
     request: SendMessageRequest,
 ):
-    client = GmailClient(TokenService.get_credentials(request.user_id, "gmail"))
+    credentials = TokenService.get_credentials(request.user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
     result = await client.send_message(
         to=request.to,
         subject=request.subject,
@@ -59,7 +61,11 @@ async def send_message(
 async def create_draft(
     request: CreateDraftRequest,
 ):
-    client = GmailClient(TokenService.get_credentials(request.user_id, "gmail"))
+    credentials = TokenService.get_credentials(request.user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
     result = await client.create_draft(
         to=request.to,
         subject=request.subject,
@@ -73,7 +79,11 @@ async def create_draft(
 async def reply_message(
     request: ReplyMessageRequest,
 ):
-    client = GmailClient(TokenService.get_credentials(request.user_id, "gmail"))
+    credentials = TokenService.get_credentials(request.user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
     result = await client.reply_message(
         message_id=request.message_id,
         to=request.to,
@@ -89,13 +99,21 @@ async def list_messages(
     user_id: str,
     max_results: int = 10,
 ):
-    client = GmailClient(TokenService.get_credentials(user_id, "gmail"))
+    credentials = TokenService.get_credentials(user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
     result = await client.list_messages(max_results=max_results)
     return result
 
 
 @app.get("/gmail/list-labels")
 async def list_labels(user_id: str):
-    client = GmailClient(TokenService.get_credentials(user_id, "gmail"))
+    credentials = TokenService.get_credentials(user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
     result = await client.list_labels()
     return result

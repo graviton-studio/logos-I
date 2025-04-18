@@ -20,15 +20,39 @@ class GmailClient(GoogleClient):
         return build("gmail", "v1", credentials=self.creds)
 
     @async_threadpool
-    def list_messages(self, max_results=10, user_id="me"):
+    def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
         service = self._build_service()
+
+        # Step 1: Get message IDs
         response = (
             service.users()
             .messages()
             .list(userId=user_id, maxResults=max_results)
             .execute()
         )
-        return response.get("messages", [])
+        messages = response.get("messages", [])
+
+        if not include_message_payload:
+            # If you just want IDs
+            return messages
+
+        # Step 2: Retrieve full message details
+        full_messages = []
+        for msg in messages:
+            msg_id = msg["id"]
+            msg_detail = (
+                service.users()
+                .messages()
+                .get(
+                    userId=user_id,
+                    id=msg_id,
+                    format="full",  # or 'metadata' or 'raw', depending on what you want
+                )
+                .execute()
+            )
+            full_messages.append(msg_detail)
+
+        return full_messages
 
     @async_threadpool
     def send_message(self, to, subject, message_text, user_id="me", attachments=None):
@@ -124,6 +148,7 @@ class GmailClient(GoogleClient):
 
 
 class SendMessageRequest(BaseModel):
+    user_id: str
     to: str
     subject: str
     message_text: str
@@ -131,6 +156,7 @@ class SendMessageRequest(BaseModel):
 
 
 class CreateDraftRequest(BaseModel):
+    user_id: str
     to: str
     subject: str
     message_text: str
@@ -138,6 +164,7 @@ class CreateDraftRequest(BaseModel):
 
 
 class ReplyMessageRequest(BaseModel):
+    user_id: str
     message_id: str
     to: str
     subject: str
