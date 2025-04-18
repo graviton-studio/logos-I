@@ -2,7 +2,7 @@ from typing import Union
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
-from integrations.gcal import get_calendars
+from integrations.gcal import get_calendars, get_events
 
 app = FastAPI()
 
@@ -20,16 +20,11 @@ def read_root():
     }
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
-
-
 @app.get("/api/gcal/calendars")
 async def get_calendars_route(user_id: str):
     return await get_calendars(user_id)
+
+
+@app.get("/api/gcal/events")
+async def get_events_route(user_id: str):
+    return await get_events(user_id)
