@@ -13,8 +13,8 @@ async def get_events(
 ):
 
     # Check if user is connected and refresh token if needed
-    user_token = await TokenService.refresh_token_if_needed(user_id, "google_calendar")
-    if not user_token:
+    credential = TokenService.refresh_token_if_needed(user_id, "gcal")
+    if not credential:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not connected to Google Calendar",
@@ -40,7 +40,7 @@ async def get_events(
         response = await client.get(
             "https://www.googleapis.com/calendar/v3/calendars/primary/events",
             params=params,
-            headers={"Authorization": f"Bearer {user_token['access_token']}"},
+            headers={"Authorization": f"Bearer {credential.access_token}"},
         )
         print(response.json())
 
@@ -55,10 +55,9 @@ async def get_events(
 
 
 async def get_calendars(user_id: str):
-
     # Check if user is connected and refresh token if needed
-    user_token = await TokenService.refresh_token_if_needed(user_id, "google_calendar")
-    if not user_token:
+    credential = TokenService.refresh_token_if_needed(user_id, "gcal")
+    if not credential:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not connected to Google Calendar",
@@ -68,7 +67,7 @@ async def get_calendars(user_id: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://www.googleapis.com/calendar/v3/users/me/calendarList",
-            headers={"Authorization": f"Bearer {user_token['access_token']}"},
+            headers={"Authorization": f"Bearer {credential.access_token}"},
         )
 
         if response.status_code != 200:

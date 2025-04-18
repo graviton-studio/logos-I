@@ -1,6 +1,7 @@
 import base64
 import os
 import datetime
+import random
 from typing import Optional
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
@@ -8,41 +9,64 @@ from cryptography.fernet import Fernet
 from utils.db import supabase
 import google.oauth2.credentials
 from dotenv import load_dotenv
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 load_dotenv()
 
 
-def generate_encryption_key(length: int = 32) -> str:
-    """Generates a secure random key for development."""
-    return base64.urlsafe_b64encode(os.urandom(length)).decode("utf-8")[:length]
+import base64
+import os
+import binascii
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+ENCRYPTION_KEY_BASE64 = os.getenv("OAUTH_ENCRYPTION_KEY")
+if not ENCRYPTION_KEY_BASE64:
+    raise ValueError("Missing OAUTH_ENCRYPTION_KEY environment variable")
+
+ENCRYPTION_KEY = base64.b64decode(ENCRYPTION_KEY_BASE64)
+if len(ENCRYPTION_KEY) != 32:
+    raise ValueError("Encryption key must be exactly 32 bytes after base64 decoding")
 
 
-OAUTH_ENCRYPTION_KEY = os.getenv("OAUTH_ENCRYPTION_KEY")  # set this in your environment
-fernet = Fernet(OAUTH_ENCRYPTION_KEY)
+def encrypt(plaintext: str) -> str:
+    if isinstance(plaintext, str):
+        plaintext = plaintext.encode("utf-8")
+
+    iv = os.urandom(16)  # 16 bytes IV, like in your JS
+    cipher = Cipher(algorithms.AES(ENCRYPTION_KEY), modes.GCM(iv))
+    encryptor = cipher.encryptor()
+
+    ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+    auth_tag = encryptor.tag
+
+    # Return in format iv:authTag:ciphertext, all hex encoded
+    return f"{binascii.hexlify(iv).decode()}:{binascii.hexlify(auth_tag).decode()}:{binascii.hexlify(ciphertext).decode()}"
 
 
-def encrypt(data: str) -> str:
-    return fernet.encrypt(data.encode()).decode()
+def decrypt(encrypted_text: str) -> str:
+    parts = encrypted_text.split(":")
+    if len(parts) != 3:
+        raise ValueError("Invalid encrypted text format")
 
+    iv = binascii.unhexlify(parts[0])
+    auth_tag = binascii.unhexlify(parts[1])
+    ciphertext = binascii.unhexlify(parts[2])
 
-def decrypt(token: str) -> str:
-    return fernet.decrypt(token.encode()).decode()
+    cipher = Cipher(algorithms.AES(ENCRYPTION_KEY), modes.GCM(iv, auth_tag))
+    decryptor = cipher.decryptor()
+
+    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    plaintext = plaintext.decode("utf-8")
+    return plaintext
 
 
 class OAuthTokenData(BaseModel):
-    def __init__(
-        self,
-        access_token: str,
-        refresh_token: Optional[str],
-        token_type: str,
-        expires_at: Optional[datetime.datetime],
-        scope: Optional[str],
-    ):
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        self.token_type = token_type
-        self.expires_at = expires_at
-        self.scope = scope
+    access_token: str
+    refresh_token: Optional[str]
+    token_type: str
+    expires_at: Optional[datetime.datetime]
+    scope: Optional[str]
 
 
 class BaseOAuthProvider(ABC):
@@ -121,6 +145,7 @@ class TokenService:
             return None
 
         data = result.data
+        print(data)
 
         return OAuthTokenData(
             access_token=TokenService.decrypt_token(data["access_token"]),
