@@ -19,9 +19,9 @@ class GmailClient(GoogleClient):
     def _build_service(self):
         return build("gmail", "v1", credentials=self.creds)
 
-    @async_threadpool
     def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
         service = self._build_service()
+        print(self.creds)
 
         # Step 1: Get message IDs
         response = (
@@ -31,7 +31,7 @@ class GmailClient(GoogleClient):
             .execute()
         )
         messages = response.get("messages", [])
-
+        print(messages, include_message_payload)
         if not include_message_payload:
             # If you just want IDs
             return messages
@@ -51,10 +51,9 @@ class GmailClient(GoogleClient):
                 .execute()
             )
             full_messages.append(msg_detail)
-
+        print(full_messages)
         return full_messages
 
-    @async_threadpool
     def send_message(self, to, subject, message_text, user_id="me", attachments=None):
         service = self._build_service()
 
@@ -78,7 +77,6 @@ class GmailClient(GoogleClient):
 
         return send_message
 
-    @async_threadpool
     def create_draft(self, to, subject, message_text, user_id="me", attachments=None):
         service = self._build_service()
 
@@ -101,13 +99,11 @@ class GmailClient(GoogleClient):
 
         return draft
 
-    @async_threadpool
     def list_labels(self, user_id="me"):
         service = self._build_service()
         response = service.users().labels().list(userId=user_id).execute()
         return response.get("labels", [])
 
-    @async_threadpool
     def reply_message(
         self, message_id, to, subject, message_text, thread_id, user_id="me"
     ):
