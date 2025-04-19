@@ -30,15 +30,17 @@ class GmailClient(GoogleClient):
                 message["subject"] = values["value"]
             elif name == "Date":
                 message["date"] = values["value"]
-        for part in msg_detail["payload"]["parts"]:
-            try:
-                data = part["body"]["data"]
-                byte_code = base64.urlsafe_b64decode(data)
+        print(msg_detail)
+        if "parts" in msg_detail["payload"]:
+            for part in msg_detail["payload"]["parts"]:
+                try:
+                    data = part["body"]["data"]
+                    byte_code = base64.urlsafe_b64decode(data)
 
-                text = byte_code.decode("utf-8")
-                message["text"] = text
-            except BaseException as error:
-                pass
+                    text = byte_code.decode("utf-8")
+                    message["text"] = text
+                except BaseException as error:
+                    pass
         return message
 
     def _retrieve_full_messages(self, messages, user_id="me"):
