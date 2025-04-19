@@ -109,7 +109,7 @@ async def list_gmail_messages(
     user_id: str,
     max_results: int = 10,
 ):
-    credentials = TokenService.get_credentials(user_id, "gmail")
+    credentials = TokenService.refresh_token_if_needed(user_id, "gmail")
     credentials = Credentials(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
@@ -141,6 +141,7 @@ async def search_gmail_messages(
     query = build_query(
         from_=from_, to=to, subject=subject, after=after, before=before, text=text
     )
+    assert query
     result = client.search_messages(query=query, max_results=max_results)
     return result
 

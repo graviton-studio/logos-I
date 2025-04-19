@@ -17,9 +17,27 @@ def build_query(**kwargs):
         if not value:
             continue
 
-        if key in ["after", "before", "newer_than", "older_than"]:
+        # Map Pythonic keys to Gmail query keys
+        if key == "from_":
+            key = "from"
+        elif key == "to":
+            key = "to"
+        elif key == "subject":
+            key = "subject"
+        elif key == "after":
+            key = "after"
+        elif key == "before":
+            key = "before"
+        elif key == "newer_than":
+            key = "newer_than"
+        elif key == "older_than":
+            key = "older_than"
+
+        # Format dates if needed
+        if key in ["after", "before"]:
             value = format_date_for_google(value)
 
+        # Special cases
         if key == "text":
             query_parts.append(value)
         elif key == "or_":
@@ -30,6 +48,6 @@ def build_query(**kwargs):
             for item in value:
                 query_parts.append(f"-{item}")
         else:
-            query_parts.append(f"{key}:{value}")
+            query_parts.append(f'{key}:"{value}"')
 
     return " ".join(query_parts)
