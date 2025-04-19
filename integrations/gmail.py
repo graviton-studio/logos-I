@@ -19,6 +19,28 @@ class GmailClient(GoogleClient):
     def _build_service(self):
         return build("gmail", "v1", credentials=self.creds)
 
+    def _parse_message(self, msg_detail):
+        message = {}
+        msg_data = msg_detail["payload"]["headers"]
+        for values in msg_data:
+            name = values["name"]
+            if name == "From":
+                message["from"] = values["value"]
+            elif name == "Subject":
+                message["subject"] = values["value"]
+            elif name == "Date":
+                message["date"] = values["value"]
+        for part in msg_detail["payload"]["parts"]:
+            try:
+                data = part["body"]["data"]
+                byte_code = base64.urlsafe_b64decode(data)
+
+                text = byte_code.decode("utf-8")
+                message["text"] = text
+            except BaseException as error:
+                pass
+        return message
+
     def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
         service = self._build_service()
 
@@ -48,7 +70,8 @@ class GmailClient(GoogleClient):
                 )
                 .execute()
             )
-            full_messages.append(msg_detail)
+            parsed_message = self._parse_message(msg_detail)
+            full_messages.append(parsed_message)
         return full_messages
 
     def send_message(self, to, subject, message_text, user_id="me", attachments=None):
