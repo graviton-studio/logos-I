@@ -41,22 +41,18 @@ class GmailClient(GoogleClient):
                 pass
         return message
 
-    def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
+    def _retrieve_full_messages(self, messages, user_id="me"):
+        """
+        Retrieve full details for a list of message IDs.
+
+        Args:
+            messages (list): List of message dictionaries containing message IDs
+            user_id (str, optional): Gmail user ID. Defaults to "me".
+
+        Returns:
+            list: List of parsed message details
+        """
         service = self._build_service()
-
-        # Step 1: Get message IDs
-        response = (
-            service.users()
-            .messages()
-            .list(userId=user_id, maxResults=max_results)
-            .execute()
-        )
-        messages = response.get("messages", [])
-        if not include_message_payload:
-            # If you just want IDs
-            return messages
-
-        # Step 2: Retrieve full message details
         full_messages = []
         for msg in messages:
             msg_id = msg["id"]
@@ -73,6 +69,35 @@ class GmailClient(GoogleClient):
             parsed_message = self._parse_message(msg_detail)
             full_messages.append(parsed_message)
         return full_messages
+
+    def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
+        service = self._build_service()
+
+        # Step 1: Get message IDs
+        response = (
+            service.users()
+            .messages()
+            .list(userId=user_id, maxResults=max_results)
+            .execute()
+        )
+        messages = response.get("messages", [])
+        if not include_message_payload:
+            # If you just want IDs
+            return messages
+
+        # Step 2: Retrieve full message details
+        return self._retrieve_full_messages(messages, user_id)
+
+    def search_messages(self, query, user_id="me", max_results=10):
+        service = self._build_service()
+        response = (
+            service.users()
+            .messages()
+            .list(userId=user_id, q=query, maxResults=max_results)
+            .execute()
+        )
+        messages = response.get("messages", [])
+        return self._retrieve_full_messages(messages, user_id)
 
     def send_message(self, to, subject, message_text, user_id="me", attachments=None):
         service = self._build_service()

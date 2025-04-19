@@ -22,6 +22,8 @@ from starlette.routing import Mount, Route
 from mcp.server import Server
 import uvicorn
 
+from utils.goog import build_query
+
 
 mcp = FastMCP("MCP Server Gateway")
 
@@ -113,6 +115,33 @@ async def list_gmail_messages(
     )
     client = GmailClient(credentials)
     result = client.list_messages(max_results=max_results)
+    return result
+
+
+@mcp.tool(name="search_gmail_messages", description="Search a user's Gmail messages")
+async def search_gmail_messages(
+    user_id: str,
+    max_results: int = 10,
+    from_: str = None,
+    to: str = None,
+    subject: str = None,
+    after: str = None,
+    before: str = None,
+    has: str = None,
+    exclude: list[str] = None,
+    or_: list[str] = None,
+    and_: list[str] = None,
+    text: str = None,
+):
+    credentials = TokenService.refresh_token_if_needed(user_id, "gmail")
+    credentials = Credentials(
+        token=credentials.access_token, refresh_token=credentials.refresh_token
+    )
+    client = GmailClient(credentials)
+    query = build_query(
+        from_=from_, to=to, subject=subject, after=after, before=before, text=text
+    )
+    result = client.search_messages(query=query, max_results=max_results)
     return result
 
 

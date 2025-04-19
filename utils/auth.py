@@ -192,10 +192,10 @@ class TokenService:
                 f"No credential found for user {user_id} and provider {provider}"
             )
 
-        if credential.expires_at and credential.expires_at > datetime.datetime.now(
-            datetime.timezone.utc
-        ):
-            return credential
+        # if credential.expires_at and credential.expires_at > datetime.datetime.now(
+        #     datetime.timezone.utc
+        # ):
+        #     return credential
 
         provider_client = TokenService.get_provider(provider)
         new_token_data = provider_client.refresh_access_token(credential)
