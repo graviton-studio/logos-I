@@ -81,7 +81,6 @@ class BaseOAuthProvider(ABC):
 
 class GoogleOAuthProvider(BaseOAuthProvider):
     def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
-        print(credential)
         token_uri = "https://oauth2.googleapis.com/token"
         payload = {
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
@@ -192,18 +191,14 @@ class TokenService:
             raise Exception(
                 f"No credential found for user {user_id} and provider {provider}"
             )
-        print(credential)
 
-        # if credential.expires_at and credential.expires_at > datetime.datetime.now(
-        #     datetime.timezone.utc
-        # ):
-        #     print("credential is still valid")
-        #     return credential  # still valid
+        if credential.expires_at and credential.expires_at > datetime.datetime.now(
+            datetime.timezone.utc
+        ):
+            return credential
 
         provider_client = TokenService.get_provider(provider)
-        print("refreshing token")
         new_token_data = provider_client.refresh_access_token(credential)
-        print("new token data", new_token_data)
         TokenService.save_credentials(user_id, provider, new_token_data)
 
         return new_token_data

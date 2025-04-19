@@ -21,7 +21,6 @@ class GmailClient(GoogleClient):
 
     def list_messages(self, max_results=10, user_id="me", include_message_payload=True):
         service = self._build_service()
-        print(self.creds)
 
         # Step 1: Get message IDs
         response = (
@@ -31,7 +30,6 @@ class GmailClient(GoogleClient):
             .execute()
         )
         messages = response.get("messages", [])
-        print(messages, include_message_payload)
         if not include_message_payload:
             # If you just want IDs
             return messages
@@ -51,7 +49,6 @@ class GmailClient(GoogleClient):
                 .execute()
             )
             full_messages.append(msg_detail)
-        print(full_messages)
         return full_messages
 
     def send_message(self, to, subject, message_text, user_id="me", attachments=None):
