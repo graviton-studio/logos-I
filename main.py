@@ -21,7 +21,7 @@ from starlette.requests import Request
 from starlette.routing import Mount, Route
 from mcp.server import Server
 import uvicorn
-
+import argparse
 from utils.goog import build_query
 
 
@@ -183,8 +183,6 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
 
 if __name__ == "__main__":
     mcp_server = mcp._mcp_server  # noqa: WPS437
-
-    import argparse
 
     parser = argparse.ArgumentParser(description="Run MCP SSE-based server")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
