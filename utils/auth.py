@@ -102,6 +102,7 @@ class GoogleOAuthProvider(BaseOAuthProvider):
 PROVIDERS = {
     "gcal": GoogleOAuthProvider(),
     "gmail": GoogleOAuthProvider(),
+    "gsheets": GoogleOAuthProvider(),
 }
 
 

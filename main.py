@@ -66,7 +66,7 @@ async def send_message(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
     client = GmailClient(credentials)
-    result = await client.send_message(
+    result = await client.send_message_async(
         to=request.to,
         subject=request.subject,
         message_text=request.message_text,
@@ -84,7 +84,7 @@ async def create_gmail_draft(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
     client = GmailClient(credentials)
-    result = await client.create_draft(
+    result = await client.create_draft_async(
         to=request.to,
         subject=request.subject,
         message_text=request.message_text,
@@ -102,7 +102,7 @@ async def reply_gmail_message(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
     client = GmailClient(credentials)
-    result = await client.reply_message(
+    result = await client.reply_message_async(
         message_id=request.message_id,
         to=request.to,
         subject=request.subject,
@@ -122,7 +122,7 @@ async def list_gmail_messages(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
     client = GmailClient(credentials)
-    result = client.list_messages(max_results=max_results)
+    result = await client.list_messages_async(max_results=max_results)
     return result
 
 
@@ -149,8 +149,7 @@ async def search_gmail_messages(
     query = build_query(
         from_=from_, to=to, subject=subject, after=after, before=before, text=text
     )
-    assert query
-    result = client.search_messages(query=query, max_results=max_results)
+    result = await client.search_messages_async(query=query, max_results=max_results)
     return result
 
 
@@ -161,7 +160,7 @@ async def list_gmail_labels(user_id: str):
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
     client = GmailClient(credentials)
-    result = await client.list_labels()
+    result = await client.list_labels_async()
     return result
 
 
@@ -170,7 +169,7 @@ async def list_gmail_labels(user_id: str):
     name="create_spreadsheet", description="Create a new Google Sheets spreadsheet"
 )
 async def create_spreadsheet(request: CreateSpreadsheetRequest):
-    credentials = TokenService.refresh_token_if_needed(request.user_id, "sheets")
+    credentials = TokenService.refresh_token_if_needed(request.user_id, "gsheets")
     credentials = Credentials(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
@@ -181,7 +180,7 @@ async def create_spreadsheet(request: CreateSpreadsheetRequest):
 
 @mcp.tool(name="get_spreadsheet", description="Get a Google Sheets spreadsheet")
 async def get_spreadsheet(request: GetSpreadsheetRequest):
-    credentials = TokenService.refresh_token_if_needed(request.user_id, "sheets")
+    credentials = TokenService.refresh_token_if_needed(request.user_id, "gsheets")
     credentials = Credentials(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
@@ -192,7 +191,7 @@ async def get_spreadsheet(request: GetSpreadsheetRequest):
 
 @mcp.tool(name="get_values", description="Get values from a Google Sheets spreadsheet")
 async def get_values(request: GetValuesRequest):
-    credentials = TokenService.refresh_token_if_needed(request.user_id, "sheets")
+    credentials = TokenService.refresh_token_if_needed(request.user_id, "gsheets")
     credentials = Credentials(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
@@ -205,7 +204,7 @@ async def get_values(request: GetValuesRequest):
     name="update_values", description="Update values in a Google Sheets spreadsheet"
 )
 async def update_values(request: UpdateValuesRequest):
-    credentials = TokenService.refresh_token_if_needed(request.user_id, "sheets")
+    credentials = TokenService.refresh_token_if_needed(request.user_id, "gsheets")
     credentials = Credentials(
         token=credentials.access_token, refresh_token=credentials.refresh_token
     )
