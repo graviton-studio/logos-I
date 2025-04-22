@@ -1,7 +1,14 @@
 from typing import Union
 
-from fastapi import FastAPI
 from pydantic import BaseModel
+from integrations.exa_search import (
+    ExaSearchClient,
+    ExaSearchRequest,
+    ExaSearchFullTextContentRequest,
+    ExaSearchWithStructuredSchemaRequest,
+    ExaFindSimilarRequest,
+    ExaFindSimilarFullTextContentRequest,
+)
 from integrations.gcal import get_calendars, get_events
 from google.oauth2.credentials import Credentials
 from utils.auth import TokenService
@@ -20,8 +27,6 @@ from integrations.gsheets import (
     AppendValuesRequest,
 )
 
-from typing import Any
-import httpx
 from mcp.server.fastmcp import FastMCP
 from starlette.applications import Starlette
 from mcp.server.sse import SseServerTransport
@@ -31,7 +36,10 @@ from mcp.server import Server
 import uvicorn
 import argparse
 from utils.goog import build_query
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 mcp = FastMCP("MCP Server Gateway")
 
@@ -226,6 +234,62 @@ async def append_values(request: AppendValuesRequest):
     client = GSheetsClient(credentials)
     result = await client.append_values_async(
         request.spreadsheet_id, request.range_name, request.values
+    )
+    return result
+
+
+@mcp.tool(
+    name="exa_search",
+    description="Perform an Exa search given an input query and retrieve a list of relevant results as links.",
+)
+async def exa_search(request: ExaSearchRequest):
+    exa = ExaSearchClient(os.getenv("EXA_API_KEY"))
+    result = await exa.search(request.query, request.num_results)
+    return result
+
+
+@mcp.tool(
+    name="exa_search_full_text_content",
+    description="Perform an Exa search given an input query and retrieve a list of relevant results as links, optionally including the full text and/or highlights of the content.",
+)
+async def exa_search_full_text_content(request: ExaSearchFullTextContentRequest):
+    exa = ExaSearchClient(os.getenv("EXA_API_KEY"))
+    result = await exa.search_full_text_content(request.query, request.num_results)
+    return result
+
+
+@mcp.tool(
+    name="exa_search_with_structured_schema",
+    description="Perform an Exa search given an input query and a structured schema for the results, and retrieve a list of relevant results as links, optionally including the full text and/or highlights of the content.",
+)
+async def exa_search_with_structured_schema(
+    request: ExaSearchWithStructuredSchemaRequest,
+):
+    exa = ExaSearchClient(os.getenv("EXA_API_KEY"))
+    result = await exa.search_with_structured_schema(request.query, request.num_results)
+    return result
+
+
+@mcp.tool(
+    name="exa_find_similar",
+    description="Perform an Exa search given an input query and retrieve a list of similar results as links.",
+)
+async def exa_find_similar(request: ExaFindSimilarRequest):
+    exa = ExaSearchClient(os.getenv("EXA_API_KEY"))
+    result = await exa.find_similar(request.query, request.num_results)
+    return result
+
+
+@mcp.tool(
+    name="exa_find_similar_full_text_content",
+    description="Perform an Exa search given an input query and retrieve a list of similar results as links, optionally including the full text and/or highlights of the content.",
+)
+async def exa_find_similar_full_text_content(
+    request: ExaFindSimilarFullTextContentRequest,
+):
+    exa = ExaSearchClient(os.getenv("EXA_API_KEY"))
+    result = await exa.find_similar_full_text_content(
+        request.query, request.num_results
     )
     return result
 

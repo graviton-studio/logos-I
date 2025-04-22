@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "anthropic>=0.49.0",
+    "exa-py>=1.12.1",
     "fastapi[standard]>=0.115.12",
     "langchain>=0.3.23",
     "langchain-openai>=0.3.14",
