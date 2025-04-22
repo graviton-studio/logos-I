@@ -1,3 +1,4 @@
+import os
 from typing import Dict, Any, Optional
 from exa_py import Exa
 from dotenv import load_dotenv

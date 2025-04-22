@@ -3,7 +3,7 @@ import json
 import os
 from typing import Optional
 from contextlib import AsyncExitStack
-
+from datetime import datetime
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 
@@ -49,6 +49,7 @@ class MCPClient:
 
     async def process_query(self, query: str) -> str:
         """Process a query using Claude and available tools"""
+        system_prompt = f"You are a helpful assistant. Today's date is {datetime.now().strftime('%Y-%m-%d')}."
         messages = [{"role": "user", "content": query}]
 
         response = await self.session.list_tools()
@@ -63,6 +64,7 @@ class MCPClient:
 
         # Initial Claude API call
         response = self.anthropic.messages.create(
+            system=system_prompt,
             model=CLAUDE_MODEL,
             max_tokens=1000,
             messages=messages,
@@ -92,9 +94,11 @@ class MCPClient:
 
                 # Get next response from Claude
                 response = self.anthropic.messages.create(
+                    system=system_prompt,
                     model=CLAUDE_MODEL,
                     max_tokens=1000,
                     messages=messages,
+                    thinking=True,
                 )
 
                 final_text.append(response.content[0].text)

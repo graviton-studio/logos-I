@@ -1,3 +1,7 @@
+"""
+Integrations package initialization
+"""
+
 # This file makes the integrations directory a Python package
 from googleapiclient.discovery import build
 
