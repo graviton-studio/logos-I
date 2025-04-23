@@ -98,7 +98,10 @@ class MCPClient:
                     model=CLAUDE_MODEL,
                     max_tokens=1000,
                     messages=messages,
-                    thinking=True,
+                    thinking={
+                        "type": "enabled",
+                        "budget_tokens": 10000,
+                    },
                 )
 
                 final_text.append(response.content[0].text)

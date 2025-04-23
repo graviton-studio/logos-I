@@ -99,10 +99,34 @@ class GoogleOAuthProvider(BaseOAuthProvider):
         return credential
 
 
+class AirtableOAuthProvider(BaseOAuthProvider):
+    def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
+        token_uri = "https://airtable.com/oauth2/v1/token"
+        payload = {
+            "grant_type": "refresh_token",
+            "refresh_token": credential.refresh_token,
+            "client_id": os.getenv("AIRTABLE_CLIENT_ID"),
+        }
+        response = httpx.post(
+            token_uri,
+            data=payload,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        if response.status_code != 200:
+            raise Exception(f"Failed to refresh token: {response.text}")
+        data = response.json()
+        credential.access_token = data["access_token"]
+        credential.expires_at = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=data["expires_in"])
+        return credential
+
+
 PROVIDERS = {
     "gcal": GoogleOAuthProvider(),
     "gmail": GoogleOAuthProvider(),
     "gsheets": GoogleOAuthProvider(),
+    "airtable": AirtableOAuthProvider(),
 }
 
 
@@ -193,10 +217,10 @@ class TokenService:
                 f"No credential found for user {user_id} and provider {provider}"
             )
 
-        # if credential.expires_at and credential.expires_at > datetime.datetime.now(
-        #     datetime.timezone.utc
-        # ):
-        #     return credential
+        if credential.expires_at and credential.expires_at > datetime.datetime.now(
+            datetime.timezone.utc
+        ):
+            return credential
 
         provider_client = TokenService.get_provider(provider)
         new_token_data = provider_client.refresh_access_token(credential)
