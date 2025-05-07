@@ -4,6 +4,8 @@ import datetime
 import random
 from typing import Optional
 from abc import ABC, abstractmethod
+from httpx import Request
+import httpx
 from pydantic import BaseModel
 from cryptography.fernet import Fernet
 from utils.db import supabase
@@ -62,7 +64,9 @@ def decrypt(encrypted_text: str) -> str:
 
 
 class OAuthTokenData(BaseModel):
+    id: str
     access_token: str
+    user_id: str
     refresh_token: Optional[str]
     token_type: str
     expires_at: Optional[datetime.datetime]
@@ -77,19 +81,52 @@ class BaseOAuthProvider(ABC):
 
 class GoogleOAuthProvider(BaseOAuthProvider):
     def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
-        credentials = google.oauth2.credentials.Credentials(
-            token=credential.access_token,
-            refresh_token=credential.refresh_token,
-            token_uri=credential.token_uri,
-            client_id=credential.client_id,
-            client_secret=credential.client_secret,
+        token_uri = "https://oauth2.googleapis.com/token"
+        payload = {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "refresh_token": credential.refresh_token,
+            "grant_type": "refresh_token",
+        }
+        response = httpx.post(token_uri, data=payload)
+        if response.status_code != 200:
+            raise Exception(f"Failed to refresh token: {response.text}")
+        data = response.json()
+        credential.access_token = data["access_token"]
+        credential.expires_at = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=data["expires_in"])
+        return credential
+
+
+class AirtableOAuthProvider(BaseOAuthProvider):
+    def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
+        token_uri = "https://airtable.com/oauth2/v1/token"
+        payload = {
+            "grant_type": "refresh_token",
+            "refresh_token": credential.refresh_token,
+            "client_id": os.getenv("AIRTABLE_CLIENT_ID"),
+        }
+        response = httpx.post(
+            token_uri,
+            data=payload,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        return credentials
+        if response.status_code != 200:
+            raise Exception(f"Failed to refresh token: {response.text}")
+        data = response.json()
+        credential.access_token = data["access_token"]
+        credential.expires_at = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=data["expires_in"])
+        return credential
 
 
 PROVIDERS = {
     "gcal": GoogleOAuthProvider(),
     "gmail": GoogleOAuthProvider(),
+    "gsheets": GoogleOAuthProvider(),
+    "airtable": AirtableOAuthProvider(),
 }
 
 
@@ -124,6 +161,7 @@ class TokenService:
         # Upsert (update if exists, insert if not)
         supabase.table("oauth_credentials").upsert(
             {
+                "id": token_data.id,
                 "user_id": user_id,
                 "provider": provider,
                 "access_token": encrypted_access_token,
@@ -135,7 +173,7 @@ class TokenService:
                 "scope": token_data.scope,
                 "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             },
-            on_conflict=["userId", "provider"],
+            on_conflict=["id", "provider"],
         ).execute()
 
     @staticmethod
@@ -152,9 +190,10 @@ class TokenService:
             return None
 
         data = result.data
-        print(data)
 
         return OAuthTokenData(
+            id=data["id"],
+            user_id=data["user_id"],
             access_token=TokenService.decrypt_token(data["access_token"]),
             refresh_token=(
                 TokenService.decrypt_token(data["refresh_token"])
@@ -181,11 +220,10 @@ class TokenService:
         if credential.expires_at and credential.expires_at > datetime.datetime.now(
             datetime.timezone.utc
         ):
-            return credential  # still valid
+            return credential
 
         provider_client = TokenService.get_provider(provider)
         new_token_data = provider_client.refresh_access_token(credential)
-
         TokenService.save_credentials(user_id, provider, new_token_data)
 
         return new_token_data
