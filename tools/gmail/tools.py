@@ -13,7 +13,7 @@ from utils.goog import build_query
 def register_gmail_tools(mcp: FastMCP):
     @mcp.tool(name="send_gmail_message", description="Send a Gmail message to a user")
     async def send_message(request: SendMessageRequest):
-        credentials = TokenService.get_credentials(request.user_id, "gmail")
+        credentials = TokenService.refresh_token_if_needed(request.user_id, "gmail")
         credentials = Credentials(
             token=credentials.access_token, refresh_token=credentials.refresh_token
         )
@@ -28,7 +28,7 @@ def register_gmail_tools(mcp: FastMCP):
 
     @mcp.tool(name="create_gmail_draft", description="Create a draft Gmail message")
     async def create_gmail_draft(request: CreateDraftRequest):
-        credentials = TokenService.get_credentials(request.user_id, "gmail")
+        credentials = TokenService.refresh_token_if_needed(request.user_id, "gmail")
         credentials = Credentials(
             token=credentials.access_token, refresh_token=credentials.refresh_token
         )
@@ -43,7 +43,7 @@ def register_gmail_tools(mcp: FastMCP):
 
     @mcp.tool(name="reply_gmail_message", description="Reply to a Gmail message")
     async def reply_gmail_message(request: ReplyMessageRequest):
-        credentials = TokenService.get_credentials(request.user_id, "gmail")
+        credentials = TokenService.refresh_token_if_needed(request.user_id, "gmail")
         credentials = Credentials(
             token=credentials.access_token, refresh_token=credentials.refresh_token
         )
@@ -99,7 +99,7 @@ def register_gmail_tools(mcp: FastMCP):
 
     @mcp.tool(name="list_gmail_labels", description="List a user's Gmail labels")
     async def list_gmail_labels(user_id: str):
-        credentials = TokenService.get_credentials(user_id, "gmail")
+        credentials = TokenService.refresh_token_if_needed(user_id, "gmail")
         credentials = Credentials(
             token=credentials.access_token, refresh_token=credentials.refresh_token
         )
