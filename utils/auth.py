@@ -5,10 +5,11 @@ from typing import Optional
 from abc import ABC, abstractmethod
 import httpx
 from pydantic import BaseModel
-from utils.db import get_supabase_client
+
 from dotenv import load_dotenv
 import binascii
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from supabase import create_client, Client
 
 load_dotenv()
 
@@ -21,7 +22,9 @@ ENCRYPTION_KEY = base64.b64decode(ENCRYPTION_KEY_BASE64)
 if len(ENCRYPTION_KEY) != 32:
     raise ValueError("Encryption key must be exactly 32 bytes after base64 decoding")
 
-supabase = get_supabase_client()
+url: str = os.getenv("SUPABASE_URL")
+key: str = os.getenv("SUPABASE_ANON_KEY")
+supabase: Client = create_client(url, key)
 
 
 def encrypt(plaintext: str) -> str:
@@ -60,6 +63,7 @@ class OAuthTokenData(BaseModel):
     id: str
     access_token: str
     user_id: str
+    provider: str
     refresh_token: Optional[str]
     token_type: str
     expires_at: Optional[datetime.datetime]
@@ -187,6 +191,7 @@ class TokenService:
         return OAuthTokenData(
             id=data["id"],
             user_id=data["user_id"],
+            provider=data["provider"],
             access_token=TokenService.decrypt_token(data["access_token"]),
             refresh_token=(
                 TokenService.decrypt_token(data["refresh_token"])
