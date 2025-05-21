@@ -1,26 +1,17 @@
 import base64
 import os
 import datetime
-import random
 from typing import Optional
 from abc import ABC, abstractmethod
-from httpx import Request
 import httpx
 from pydantic import BaseModel
-from cryptography.fernet import Fernet
-from utils.db import supabase
-import google.oauth2.credentials
+from utils.db import get_supabase_client
 from dotenv import load_dotenv
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import binascii
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 load_dotenv()
 
-
-import base64
-import os
-import binascii
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 ENCRYPTION_KEY_BASE64 = os.getenv("OAUTH_ENCRYPTION_KEY")
 if not ENCRYPTION_KEY_BASE64:
@@ -29,6 +20,8 @@ if not ENCRYPTION_KEY_BASE64:
 ENCRYPTION_KEY = base64.b64decode(ENCRYPTION_KEY_BASE64)
 if len(ENCRYPTION_KEY) != 32:
     raise ValueError("Encryption key must be exactly 32 bytes after base64 decoding")
+
+supabase = get_supabase_client()
 
 
 def encrypt(plaintext: str) -> str:
