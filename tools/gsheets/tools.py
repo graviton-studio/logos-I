@@ -66,7 +66,7 @@ def register_gsheets_tools(mcp: FastMCP):
         name="append_values", description="Append values to a Google Sheets spreadsheet"
     )
     async def append_values(request: AppendValuesRequest):
-        credentials = TokenService.refresh_token_if_needed(request.user_id, "sheets")
+        credentials = TokenService.refresh_token_if_needed(request.user_id, "gsheets")
         credentials = Credentials(
             token=credentials.access_token, refresh_token=credentials.refresh_token
         )
