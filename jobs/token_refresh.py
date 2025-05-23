@@ -1,7 +1,6 @@
 import logging
 from fastapi import logger
 from utils.db import (
-    upsert_oauth_credentials,
     get_expiring_oauth_credentials,
     delete_oauth_credentials,
 )
