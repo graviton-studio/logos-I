@@ -106,3 +106,15 @@ def register_gmail_tools(mcp: FastMCP):
         client = GmailClient(credentials)
         result = await client.list_labels_async()
         return result
+
+    @mcp.tool(
+        name="get_gmail_message", description="Get a specific Gmail message by ID"
+    )
+    async def get_gmail_message(user_id: str, message_id: str):
+        credentials = TokenService.refresh_token_if_needed(user_id, "gmail")
+        credentials = Credentials(
+            token=credentials.access_token, refresh_token=credentials.refresh_token
+        )
+        client = GmailClient(credentials)
+        result = await client.get_message_async(message_id)
+        return result
