@@ -67,8 +67,9 @@ propcache==0.3.1
 proto-plus==1.26.1
 protobuf==6.30.2
 pyairtable==3.1.1
-pyasn1==0.6.1
-pyasn1-modules==0.4.2
+pyasn==1.6.2
+pyasn1==0.4.8
+pyasn1-modules==0.4.1
 pycparser==2.22
 pydantic==2.11.3
 pydantic-core==2.33.1
@@ -113,7 +114,7 @@ urllib3==2.4.0
 uvicorn==0.34.1
 uvloop==0.21.0
 watchfiles==1.0.5
-websockets==15.0.1
+websockets==14.2
 xxhash==3.5.0
 yarl==1.20.0
 zstandard==0.23.0
