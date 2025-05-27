@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 def refresh_oauth_credential(oauth_data: OAuthTokenData):
     try:
         token_service = TokenService()
-        print(oauth_data)
         token_service.refresh_token_if_needed(oauth_data.user_id, oauth_data.provider)
         logger.info(f"Refreshed token for {oauth_data.user_id} {oauth_data.provider}")
     except Exception as e:
