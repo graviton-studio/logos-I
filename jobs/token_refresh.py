@@ -1,10 +1,10 @@
 import logging
 from fastapi import logger
-from utils.db import (
+from ..utils.db import (
     get_expiring_oauth_credentials,
     delete_oauth_credentials,
 )
-from utils.auth import OAuthTokenData, TokenService
+from ..utils.auth import OAuthTokenData, TokenService
 
 logger = logging.getLogger(__name__)
 
