@@ -16,4 +16,4 @@ def register_all_tools(mcp: FastMCP):
     register_gdrive_tools(mcp)
     register_exa_tools(mcp)
     register_airtable_tools(mcp)
-    register_slack_tools(mcp)
+    # register_slack_tools(mcp)
