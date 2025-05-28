@@ -1,10 +1,10 @@
 import logging
 from fastapi import logger
-from ..utils.db import (
+from utils.db import (
     get_expiring_oauth_credentials,
     delete_oauth_credentials,
 )
-from ..utils.auth import OAuthTokenData, TokenService
+from utils.auth import OAuthTokenData, TokenService
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,6 @@ def refresh_oauth_credential(oauth_data: OAuthTokenData):
     try:
         token_service = TokenService()
         token_service.refresh_token_if_needed(oauth_data.user_id, oauth_data.provider)
-        logger.info(f"Refreshed token for {oauth_data.user_id} {oauth_data.provider}")
     except Exception as e:
         logger.error(
             f"Error refreshing token for {oauth_data.user_id} {oauth_data.provider}: {e}"

@@ -130,6 +130,7 @@ PROVIDERS = {
     "gcal": GoogleOAuthProvider(),
     "gmail": GoogleOAuthProvider(),
     "gsheets": GoogleOAuthProvider(),
+    "gdrive": GoogleOAuthProvider(),
     "airtable": AirtableOAuthProvider(),
     "slack": SlackOAuthProvider(),
 }
