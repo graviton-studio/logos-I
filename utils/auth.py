@@ -119,11 +119,19 @@ class AirtableOAuthProvider(BaseOAuthProvider):
         return credential
 
 
+class SlackOAuthProvider(BaseOAuthProvider):
+    def refresh_access_token(self, credential: OAuthTokenData) -> OAuthTokenData:
+        # Slack tokens typically don't expire, so we just return the credential as-is
+        # If the token is invalid, the Slack API will return an error
+        return credential
+
+
 PROVIDERS = {
     "gcal": GoogleOAuthProvider(),
     "gmail": GoogleOAuthProvider(),
     "gsheets": GoogleOAuthProvider(),
     "airtable": AirtableOAuthProvider(),
+    "slack": SlackOAuthProvider(),
 }
 
 
